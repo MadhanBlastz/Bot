@@ -1,4 +1,7 @@
 import os
+import string
+import random
+import re
 from pyrogram import Client, filters
 from pytube import Youtube
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -7,6 +10,12 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 api_id = os.environ.get('API_ID')
 api_hash = os.environ.get('API_HASH')
 bot_token = os.environ.get('BOT_TOKEN')
+
+
+REGEX_CB = re.compile(r'(\w+)-(\w+)')
+
+# Store youtube links
+links = {}
 
 
 # Store the message IDs for each state
@@ -26,6 +35,16 @@ starting_keyboard = InlineKeyboardMarkup([
         InlineKeyboardButton("Close", callback_data="close")
     ]
 ])
+
+# Generate random string
+def generate_random_string(length):
+    # Define the characters from which to generate the random string
+    characters = string.ascii_letters + string.digits
+
+    # Generate the random string
+    random_string = ''.join(random.choice(characters) for _ in range(length))
+
+    return random_string
 
 # Define a function to send or update a message
 async def send_or_update_message(chat_id, message_text, keyboard=None):
@@ -158,19 +177,22 @@ async def handle_youtube_link(client, message):
         "🔗 Make Download/Stream Link : Generated link will Play/Download in Browser\n\n"
         "Please select your preferred action below 👇"
     )
+
+    random_id = generate_random_string(10)
+    links[random_id] = message.text
     
     # Define inline keyboard markup for the buttons
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("Thumbnail Downloader 🖼️", callback_data="thumbnail"),
-            InlineKeyboardButton("YouTube Video Trimmer ✂️", callback_data="trimmer")
+            InlineKeyboardButton("Thumbnail Downloader 🖼️", callback_data=f"thumbnail-{random_id}"),
+            InlineKeyboardButton("YouTube Video Trimmer ✂️", callback_data=f"trimmer-{random_id}")
         ],
         [
-            InlineKeyboardButton("Fast Downloader ⏩", callback_data="fast_downloader"),
-            InlineKeyboardButton("YouTube Music 🎶", callback_data="youtube_music")
+            InlineKeyboardButton("Fast Downloader ⏩", callback_data=f"fast_downloader-{random_id}"),
+            InlineKeyboardButton("YouTube Music 🎶", callback_data=f"youtube_music-{random_id}")
         ],
         [
-            InlineKeyboardButton("YouTube Video 🎥", callback_data="youtube_video")
+            InlineKeyboardButton("YouTube Video 🎥", callback_data=f"youtube_video-{random_id}")
         ],
         [
             InlineKeyboardButton("Cancel ❌", callback_data="cancel")
@@ -185,6 +207,13 @@ async def handle_youtube_link(client, message):
 async def callback_query(client, callback_query):
     # Get the data from the callback
     action = callback_query.data
+
+    option = REGEX_CB.search(action)
+    
+    if option:
+        action = option.group(1)
+        random_id = option.group(2)
+        youtube_url = links.get(random_id)
     
     # Perform different actions based on the callback data
     if action == "thumbnail":
