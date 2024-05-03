@@ -1,5 +1,6 @@
 import os
 from pyrogram import Client, filters
+from pytube import Youtube
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Get sensitive information from environment variables
@@ -7,12 +8,6 @@ api_id = os.environ.get('API_ID')
 api_hash = os.environ.get('API_HASH')
 bot_token = os.environ.get('BOT_TOKEN')
 
-# Check if all required environment variables are set
-if not (api_id and api_hash and bot_token):
-    raise ValueError("API credentials or bot token are not set as environment variables.")
-
-# Create a Pyrogram client
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
 # Store the message IDs for each state
 message_ids = {}
@@ -38,7 +33,7 @@ async def send_or_update_message(chat_id, message_text, keyboard=None):
         await app.edit_message_text(chat_id, message_ids[chat_id], message_text, reply_markup=keyboard)
     else:
         message = await app.send_message(chat_id, message_text, reply_markup=keyboard)
-        message_ids[chat_id] = message.message_id
+        message_ids[chat_id] = message.id
 
 # Define a function to handle /start command
 @app.on_message(filters.command("start") & filters.private)
@@ -154,5 +149,88 @@ async def callback_query_disclaimer(client, callback_query):
     # Update the message content with the legal disclaimer text
     await callback_query.edit_message_text(disclaimer_text, reply_markup=starting_keyboard)
 
+# Define a function to handle messages containing a YouTube link
+@app.on_message(filters.text & filters.regex(r'(https?://)?(www\.)?(youtube\.com|youtu\.be)/\S+'))
+async def handle_youtube_link(client, message):
+    # Reply with the message about actions to take with the YouTube link
+    reply_text = (
+        "🎵 YouTube Music : For Downloading Songs in High/Low Quality from YouTube\n\n"
+        "🔗 Make Download/Stream Link : Generated link will Play/Download in Browser\n\n"
+        "Please select your preferred action below 👇"
+    )
+    
+    # Define inline keyboard markup for the buttons
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Thumbnail Downloader 🖼️", callback_data="thumbnail"),
+            InlineKeyboardButton("YouTube Video Trimmer ✂️", callback_data="trimmer")
+        ],
+        [
+            InlineKeyboardButton("Fast Downloader ⏩", callback_data="fast_downloader"),
+            InlineKeyboardButton("YouTube Music 🎶", callback_data="youtube_music")
+        ],
+        [
+            InlineKeyboardButton("YouTube Video 🎥", callback_data="youtube_video")
+        ],
+        [
+            InlineKeyboardButton("Cancel ❌", callback_data="cancel")
+        ]
+    ])
+    
+    # Send the reply with inline keyboard
+    await message.reply_text(reply_text, reply_markup=keyboard)
+
+# Define a function to handle callback queries for buttons
+@app.on_callback_query()
+async def callback_query(client, callback_query):
+    # Get the data from the callback
+    action = callback_query.data
+    
+    # Perform different actions based on the callback data
+    if action == "thumbnail":
+        await callback_query.answer("Processing... 🔄")
+        # Add your code to handle Thumbnail Downloader action
+        
+    elif action == "trimmer":
+        await callback_query.answer("Processing... 🔄")
+        # Add your code to handle YouTube Video Trimmer action
+        
+    elif action == "fast_downloader":
+        await callback_query.answer("Processing... 🔄")
+        # Add your code to handle Fast Downloader action
+        
+    elif action == "youtube_music":
+        await callback_query.answer("Processing... 🔄")
+        # Add your code to handle YouTube Music action
+        
+    elif action == "youtube_video":
+        # Prompt the user to select their preferred resolution
+        reply_text = "Please select your preferred resolution:"
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("240p", callback_data="resolution_240p"),
+                InlineKeyboardButton("360p", callback_data="resolution_360p"),
+                InlineKeyboardButton("480p", callback_data="resolution_480p"),
+                InlineKeyboardButton("720p", callback_data="resolution_720p"),
+                InlineKeyboardButton("1080p", callback_data="resolution_1080p"),
+            ],
+            [
+                InlineKeyboardButton("2k", callback_data="resolution_2k"),
+                InlineKeyboardButton("4k", callback_data="resolution_4k")
+            ],
+            [
+                InlineKeyboardButton("Cancel ❌", callback_data="cancel")
+            ]
+        ])
+        await callback_query.edit_message_text(reply_text, reply_markup=keyboard)
+        
+    elif action.startswith("resolution_"):
+        resolution = action.replace("resolution_", "")
+        await callback_query.answer(f"You selected {resolution} resolution! 📹")
+
+    elif action == "cancel":
+        await callback_query.answer("Action canceled! ❌")
+
 # Run the bot
 app.run()
+
