@@ -7,9 +7,9 @@ from pytube import Youtube
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Get sensitive information from environment variables
-api_id = os.environ.get('API_ID')
-api_hash = os.environ.get('API_HASH')
-bot_token = os.environ.get('BOT_TOKEN')
+api_id = os.environ.get('API_ID','21661450')
+api_hash = os.environ.get('API_HASH','79612bc71908f95372808520a7eeee74')
+bot_token = os.environ.get('BOT_TOKEN','7463606692:AAFKceJNgKeY2x01NsgRTFok0ifynPkpGXQ')
 
 
 REGEX_CB = re.compile(r'(\w+)-(\w+)')
