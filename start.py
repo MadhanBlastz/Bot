@@ -9,7 +9,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 # Get sensitive information from environment variables
 api_id = int(os.environ.get('API_ID', '21661450'))
 api_hash = os.environ.get('API_HASH','79612bc71908f95372808520a7eeee74')
-bot_token = os.environ.get('BOT_TOKEN')
+bot_token = os.environ.get('BOT_TOKEN','7211200915:AAHuMftJMaIvzgYwWSFD10_Cu21F0FrYk3Q')
 
 
 REGEX_CB = re.compile(r'(\w+)-(\w+)')
